@@ -259,6 +259,30 @@
         keydown(65); keyup(65);
         t.assertEqual(called, true);
         window.key = k;
+      },
+
+      testPathScope: function(t) {
+        var sequence = '';
+
+        key('a', 'lower', function(){ sequence += 'a' });
+        key('b', 'lower', function(){ sequence += 'b' });
+        key('a', 'lower.capital', function(){ sequence += 'A' });
+        key('b', 'lower.capital', function(){ sequence += 'B' });
+        key('c', 'lower.capital.both', function(){sequence += 'cC' });
+
+        key.setScope('capital');
+        keydown(65); keyup(65);
+        keydown(66); keyup(66);
+        keydown(67); keyup(67);
+        key.setScope('lower');
+        keydown(65); keyup(65);
+        keydown(66); keyup(66);
+        key.deleteScope('capital');
+        keydown(65); keyup(65);
+        keydown(66); keyup(66);
+        keydown(67); keyup(67);
+
+        t.assertEqual('ABcCaAbBab', sequence);
       }
     });
   </script>

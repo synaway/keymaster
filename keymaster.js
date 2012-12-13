@@ -7,6 +7,7 @@
     _handlers = {},
     _mods = { 16: false, 18: false, 17: false, 91: false },
     _scope = 'all',
+    _scope_separator = '.'
     // modifier keys
     _MODIFIERS = {
       '⇧': 16, shift: 16,
@@ -70,7 +71,12 @@
       handler = _handlers[key][i];
 
       // see if it's in the current scope
-      if(handler.scope == scope || handler.scope == 'all'){
+      var scopesArray = handler.scope.split(_scope_separator);
+      // and the current _scope has higher priority
+      // for example if handler's scope is 's1.s2' and current _scope is 's2' but dispatch was invoked with 's1'
+      // then event is not triggered
+      console.log('dispatching key: ' + key + ', scope: ' + scope + ', handlerScope: ' + handler.scope + ', _scope: ' + _scope)
+      if((scopesArray.indexOf(scope) !== -1 && scopesArray.indexOf(scope) >= scopesArray.indexOf(_scope)) || handler.scope == 'all'){
         // check if modifiers match if any
         modifiersMatch = handler.mods.length > 0;
         for(k in _mods)
@@ -173,14 +179,14 @@
   function setScope(scope){ _scope = scope || 'all' };
   function getScope(){ return _scope || 'all' };
 
-  // delete all handlers for a given scope
+  // delete all handlers for a given scope and all it's children
   function deleteScope(scope){
     var key, handlers, i;
 
     for (key in _handlers) {
       handlers = _handlers[key];
       for (i = 0; i < handlers.length; ) {
-        if (handlers[i].scope === scope) handlers.splice(i, 1);
+        if (handlers[i].scope.split(_scope_separator).indexOf(scope) !== -1) handlers.splice(i, 1);
         else i++;
       }
     }
