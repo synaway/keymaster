@@ -41,6 +41,15 @@
     return -1;
   }
 
+  function checkScopes(handler, scopesArray, scope) {
+    var options = handler.options || {};
+    var dispatchScope = scopesArray.indexOf(scope) === scopesArray.length - 1;
+    if(options.dispatchAllScopes) {
+      dispatchScope = scopesArray.indexOf(scope) !== -1;
+    }
+    return (dispatchScope && scopesArray.indexOf(scope) >= scopesArray.indexOf(_scope)) || handler.scope == 'all';
+  }
+
   // handle keydown event
   function dispatch(event, scope){
     var key, handler, k, i, modifiersMatch;
@@ -72,11 +81,11 @@
 
       // see if it's in the current scope
       var scopesArray = handler.scope.split(_scope_separator);
-      // and the current _scope has higher priority
-      // for example if handler's scope is 's1.s2' and current _scope is 's2' but dispatch was invoked with 's1'
+      // the current _scope has higher priority
+      // for example if handler's scope is 's1.s2' and current _scope is 's2' but dispatch was invoked with 's1' (scope was changed during execution #48)
       // then event is not triggered
       console.log('dispatching key: ' + key + ', scope: ' + scope + ', handlerScope: ' + handler.scope + ', _scope: ' + _scope)
-      if((scopesArray.indexOf(scope) !== -1 && scopesArray.indexOf(scope) >= scopesArray.indexOf(_scope)) || handler.scope == 'all'){
+      if(checkScopes(handler, scopesArray, scope)){
         // check if modifiers match if any
         modifiersMatch = handler.mods.length > 0;
         for(k in _mods)
@@ -118,7 +127,7 @@
   }
 
   // parse and assign shortcut
-  function assignKey(key, scope, method){
+  function assignKey(key, scope, method, options){
     var keys, mods, i, mi;
     if (method === undefined) {
       method = scope;
@@ -145,7 +154,7 @@
       key = _MAP[key] || key.toUpperCase().charCodeAt(0);
       // ...store handler
       if (!(key in _handlers)) _handlers[key] = [];
-      _handlers[key].push({ shortcut: keys[i], scope: scope, method: method, key: keys[i], mods: mods });
+      _handlers[key].push({ shortcut: keys[i], scope: scope, method: method, key: keys[i], mods: mods, options: options });
     }
   };
 
